@@ -108,7 +108,7 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="flex flex-col max-w-xl mx-auto h-[500px] border rounded-lg shadow-lg overflow-hidden">
+    <div className="flex flex-col max-w-xl mx-auto h-[300px] border rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
       <div className="flex justify-between items-center p-3 border-b bg-gray-100 text-sm text-gray-700">
         <div>
@@ -127,7 +127,7 @@ export default function Chatbot() {
       <div className="flex-1 p-4 overflow-y-auto bg-white space-y-2">
         {messages.length === 0 && (
           <div className="text-center text-gray-400 mt-8">
-            Start a conversation...
+           AI ChatBot
           </div>
         )}
         {messages.map((msg, i) => (
