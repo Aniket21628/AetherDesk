@@ -1,116 +1,102 @@
-import { Request, Response, NextFunction } from "express";
-import { generateGeminiResponse, testGeminiConnection } from "../services/langchainService";
+// backend/routes/chat.ts (or wherever your chat route is)
+import { Request, Response } from 'express';
+import { generateGeminiResponse, clearSession, getSessionHistory } from '../services/langchainService'; // adjust path
 
-export const chatWithAI = async (req: Request, res: Response, next: NextFunction) => {
-  console.log('=== Gemini Chat Request Received ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  
-  const { message } = req.body;
-  
-  // Enhanced validation
-  if (!message) {
-    console.log('ERROR: Missing message');
-    return res.status(400).json({ 
-      error: "Message is required",
-      code: "MISSING_MESSAGE"
-    });
-  }
+interface ChatRequest extends Request {
+  body: {
+    message: string;
+    sessionId?: string;
+  };
+}
 
-  if (typeof message !== 'string') {
-    console.log('ERROR: Invalid message type:', typeof message);
-    return res.status(400).json({ 
-      error: "Message must be a string",
-      code: "INVALID_MESSAGE_TYPE"
-    });
-  }
-
-  if (message.trim().length === 0) {
-    console.log('ERROR: Empty message');
-    return res.status(400).json({ 
-      error: "Message cannot be empty",
-      code: "EMPTY_MESSAGE"
-    });
-  }
-
-  if (message.length > 8000) { // Gemini has higher limits
-    console.log('ERROR: Message too long');
-    return res.status(400).json({ 
-      error: "Message too long. Maximum 8000 characters allowed.",
-      code: "MESSAGE_TOO_LONG"
-    });
-  }
-
+// Main chat endpoint
+export const handleChatMessage = async (req: ChatRequest, res: Response): Promise<void> => {
   try {
-    console.log('Processing message with Gemini:', message);
-    
-    const aiResponse = await generateGeminiResponse(message);
-    
-    console.log('Gemini AI Response generated successfully');
-    console.log('Response length:', aiResponse.length);
-    
-    const responseObj = { 
-      response: aiResponse,
-      timestamp: new Date().toISOString(),
-      model: "gemini-pro",
-      provider: "Google"
-    };
-    
-    console.log('Sending Gemini response');
-    res.json(responseObj);
-    
-  } catch (error) {
-    console.log('=== Gemini Controller Error ===');
-    // Simple error logger
-    console.error(`[Gemini Controller]`, error);
-    
-    // Handle specific Gemini error types
-    if (error instanceof Error) {
-      if (error.message.includes("quota") || error.message.includes("QUOTA_EXCEEDED")) {
-        return res.status(429).json({ 
-          error: "Gemini quota exceeded. Please try again later.",
-          code: "RATE_LIMIT"
-        });
-      }
-      
-      if (error.message.includes("API key") || error.message.includes("authentication")) {
-        return res.status(401).json({ 
-          error: "Gemini API configuration error",
-          code: "API_ERROR"
-        });
-      }
-      
-      if (error.message.includes("safety") || error.message.includes("BLOCKED")) {
-        return res.status(400).json({ 
-          error: "Content blocked by safety filters. Please rephrase your message.",
-          code: "CONTENT_BLOCKED"
-        });
-      }
-      
-      if (error.message.includes("timeout")) {
-        return res.status(408).json({ 
-          error: "Request timeout",
-          code: "TIMEOUT"
-        });
-      }
+    const { message, sessionId } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      res.status(400).json({ 
+        error: 'Message is required and must be a non-empty string' 
+      });
+      return;
     }
+
+    console.log('Processing chat message:', message);
+    console.log('Session ID:', sessionId || 'new session');
+
+    // Generate response with conversation history
+    const result = await generateGeminiResponse(message, sessionId);
+
+    res.json({
+      response: result.response,
+      sessionId: result.sessionId,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Chat error:', error);
     
-    res.status(500).json({ 
-      error: "Gemini AI response failed",
-      code: "AI_SERVICE_ERROR",
-      details: error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    res.status(500).json({
+      error: errorMessage,
+      timestamp: new Date().toISOString()
     });
   }
 };
 
-// Test endpoint for Gemini
-export const testGeminiAPI = async (req: Request, res: Response) => {
+// Optional: Endpoint to clear conversation history
+export const clearChatHistory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await testGeminiConnection();
-    res.json(result);
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      res.status(400).json({ error: 'Session ID is required' });
+      return;
+    }
+
+    clearSession(sessionId);
+    
+    res.json({ 
+      message: 'Conversation history cleared',
+      sessionId 
+    });
+
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Test failed'
+    console.error('Clear history error:', error);
+    res.status(500).json({ 
+      error: 'Failed to clear conversation history' 
     });
   }
 };
+
+// Optional: Endpoint to get conversation history
+export const getChatHistory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      res.status(400).json({ error: 'Session ID is required' });
+      return;
+    }
+
+    const history = getSessionHistory(sessionId);
+    
+    res.json({ 
+      history,
+      sessionId,
+      messageCount: history.length 
+    });
+
+  } catch (error) {
+    console.error('Get history error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve conversation history' 
+    });
+  }
+};
+
+// Your route setup (adjust based on your app structure)
+// app.post('/ai/chat', handleChatMessage);
+// app.post('/ai/clear', clearChatHistory);
+// app.get('/ai/history/:sessionId', getChatHistory);

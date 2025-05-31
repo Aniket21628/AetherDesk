@@ -1,5 +1,5 @@
 import express from "express";
-import { chatWithAI, testGeminiAPI } from "../controllers/aiController";
+import { handleChatMessage } from "../controllers/aiController";
 import { verifyToken } from "../middleware/auth";
 import rateLimit from "express-rate-limit";
 
@@ -37,13 +37,14 @@ const asyncHandler = (fn: any) => (req: express.Request, res: express.Response, 
   Promise.resolve(fn(req, res, next)).catch(next);
 
 // Routes
-router.get("/test-gemini", asyncHandler(testGeminiAPI)); // Test endpoint
+// router.get("/test-gemini", asyncHandler(testGeminiAPI)); // Test endpoint
 router.post("/chat", 
   geminiRateLimit,
   verifyToken, // Add back when ready
   validateChatInput,
-  asyncHandler(chatWithAI)
+  asyncHandler(handleChatMessage)
 );
+
 
 export default router;
 
