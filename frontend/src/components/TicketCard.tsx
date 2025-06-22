@@ -18,6 +18,7 @@ import {
   Visibility as ViewIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 
 type Ticket = {
   id: number;
@@ -93,8 +94,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, onEdit, onView }) => {
     });
   };
 
+const router = useRouter();
+
   return (
     <Card
+    onClick={() => router.push(`/tickets/${ticket.id}`)}
       sx={{
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: 'pointer',

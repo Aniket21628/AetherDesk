@@ -117,12 +117,6 @@ export default function TicketDetailPage() {
       bgcolor: '#fef3c7',
       icon: ProgressIcon,
     },
-    resolved: {
-      label: 'Resolved',
-      color: '#10b981',
-      bgcolor: '#d1fae5',
-      icon: CheckCircleIcon,
-    },
     closed: {
       label: 'Closed',
       color: '#10b981',
@@ -447,10 +441,10 @@ export default function TicketDetailPage() {
                             <span>In Progress</span>
                           </Stack>
                         </MenuItem>
-                        <MenuItem value="resolved">
+                        <MenuItem value="closed">
                           <Stack direction="row" alignItems="center" spacing={1}>
-                            <CheckCircleIcon sx={{ fontSize: 16, color: statusConfig.resolved.color }} />
-                            <span>Resolved</span>
+                            <CheckCircleIcon sx={{ fontSize: 16, color: statusConfig.closed.color }} />
+                            <span>Closed</span>
                           </Stack>
                         </MenuItem>
                       </Select>
