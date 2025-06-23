@@ -16,6 +16,10 @@ import {
   IconButton,
   Badge,
   Fab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Paper,
   Avatar,
   Button,
@@ -126,6 +130,9 @@ export default function DashboardPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [openSummary, setOpenSummary] = useState(false);
+  const [summaryText, setSummaryText] = useState('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const { token, logout } = useAuth();
   const router = useRouter();
   const muiTheme = useTheme();
@@ -162,6 +169,37 @@ export default function DashboardPage() {
       fetchTickets();
     }
   }, [token]);
+
+  useEffect(() => {
+  const fetchSummary = async () => {
+    if (!openSummary) return;
+    const token = localStorage.getItem('token');
+    setSummaryLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/ai/summary'
+        , {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to fetch summary');
+      }
+      const data = await res.json();
+      setSummaryText(data.summary || 'No summary available.');
+    } catch (err) {
+      setSummaryText('Failed to load AI summary.');
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  fetchSummary();
+}, [openSummary]);
+
 
   const getTicketStats = () => {
     const stats = {
@@ -419,23 +457,44 @@ export default function DashboardPage() {
           )}
         </Container>
 
-        {/* Floating Action Button */}
+        {/* Floating AI Summary Button */}
         <Fab
           color="secondary"
-          aria-label="add ticket"
+          aria-label="ai summary"
           sx={{
             position: 'fixed',
             bottom: 24,
             right: 24,
-            background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)',
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
             '&:hover': {
-              background: 'linear-gradient(135deg, #be185d 0%, #9d174d 100%)',
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
             }
           }}
-          onClick={() => router.push('/create-ticket')}
+          onClick={() => setOpenSummary(true)}
         >
-          <AddIcon />
+          <TrendingUpIcon />
         </Fab>
+        
+        <Dialog open={openSummary} onClose={() => setOpenSummary(false)} fullWidth maxWidth="md">
+          <DialogTitle>🧠 AI Ticket Summary</DialogTitle>
+          <DialogContent dividers sx={{ whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>
+            {summaryLoading ? (
+              <Box display="flex" alignItems="center" justifyContent="center" py={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Typography variant="body1">
+                {summaryText}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenSummary(false)} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       </Box>
     </ThemeProvider>
   );

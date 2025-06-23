@@ -1,6 +1,8 @@
 // backend/routes/chat.ts (or wherever your chat route is)
 import { Request, Response } from 'express';
-import { generateGeminiResponse, clearSession, getSessionHistory } from '../services/langchainService'; // adjust path
+import { generateGeminiResponse, clearSession, getSessionHistory } from '../services/langchainService';
+import prisma from '../prismaClient';
+import { summarizeTickets } from '../services/langchainService';// adjust path
 
 interface ChatRequest extends Request {
   body: {
@@ -91,6 +93,38 @@ export const getChatHistory = async (req: Request, res: Response): Promise<void>
     });
   }
 };
+
+export const handleSummarizeTickets = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      include: {
+        user: { select: { name: true, email: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!tickets.length) {
+      res.json({ summary: "There are currently no tickets to summarize." });
+      return;
+    }
+
+    const summary = await summarizeTickets(
+      tickets.map(ticket => ({
+        id: ticket.id,
+        title: ticket.title,
+        description: ticket.description ?? '',
+        priority: ticket.priority ?? '',
+        status: ticket.status,
+        user: ticket.user
+      }))
+    );
+    res.json({ summary });
+  } catch (error) {
+    console.error('Summarization Error:', error);
+    res.status(500).json({ error: 'Failed to summarize tickets' });
+  }
+};
+
 
 // Your route setup (adjust based on your app structure)
 // app.post('/ai/chat', handleChatMessage);

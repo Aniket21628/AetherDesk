@@ -1,5 +1,6 @@
 import express from "express";
 import { handleChatMessage } from "../controllers/aiController";
+import { handleSummarizeTickets } from "../controllers/aiController";
 import { verifyToken } from "../middleware/auth";
 import rateLimit from "express-rate-limit";
 
@@ -43,6 +44,12 @@ router.post("/chat",
   validateChatInput,
   asyncHandler(handleChatMessage)
 );
+
+router.get("/summary",
+  geminiRateLimit,
+  verifyToken,
+  asyncHandler(handleSummarizeTickets)
+)
 
 
 export default router;

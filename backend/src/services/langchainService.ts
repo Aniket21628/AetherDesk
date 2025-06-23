@@ -187,3 +187,40 @@ export const testGeminiConnection = async (): Promise<{ success: boolean; messag
     return { success: false, message: error instanceof Error ? error.message : 'Unknown connection error' };
   }
 };
+
+export const summarizeTickets = async (
+  tickets: {
+    id: number;
+    title: string;
+    description: string;
+    priority: string;
+    status: string;
+    user: { name: string; email: string };
+  }[]
+): Promise<string> => {
+  const context = tickets.map(ticket => (
+    `Ticket ID: ${ticket.id}
+Title: ${ticket.title}
+Description: ${ticket.description}
+Priority: ${ticket.priority}
+Status: ${ticket.status}
+Submitted by: ${ticket.user.name} (${ticket.user.email})`
+  )).join('\n\n---\n\n');
+
+  const prompt = `
+You are a support admin assistant. Given the list of support tickets below, generate a high-level summary for the admin. Mention:
+
+- How many open, resolved, or escalated tickets exist
+- Any repeating issues or patterns (e.g. "multiple users reported login issues")
+- Highlight high priority or urgent issues
+- Be concise and professional.
+
+Here are the tickets:
+---
+${context}
+`;
+
+  const messages = [new HumanMessage(prompt)];
+  const response = await geminiModel.invoke(messages);
+  return response.content as string;
+};
