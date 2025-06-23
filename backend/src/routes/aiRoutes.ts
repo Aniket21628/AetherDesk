@@ -36,33 +36,13 @@ const validateChatInput: express.RequestHandler = (req, res, next) => {
 const asyncHandler = (fn: any) => (req: express.Request, res: express.Response, next: express.NextFunction) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
-// Routes
-// router.get("/test-gemini", asyncHandler(testGeminiAPI)); // Test endpoint
+
 router.post("/chat", 
   geminiRateLimit,
-  verifyToken, // Add back when ready
+  verifyToken, 
   validateChatInput,
   asyncHandler(handleChatMessage)
 );
 
 
 export default router;
-
-// package.json dependencies you need to add:
-/*
-{
-  "dependencies": {
-    "@langchain/google-genai": "^0.0.25",
-    "@google/generative-ai": "^0.15.0"
-  }
-}
-*/
-
-// .env file setup:
-/*
-# Get your API key from: https://aistudio.google.com/app/apikey
-GOOGLE_API_KEY=your_gemini_api_key_here
-
-# Remove or comment out OpenAI key if not using
-# OPENAI_API_KEY=your_openai_key
-*/
