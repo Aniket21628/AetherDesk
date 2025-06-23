@@ -1,8 +1,9 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
+import prisma from '../prismaClient';
 
-// Environment check for Gemini
+// === Environment Check ===
 const checkGeminiEnvironment = () => {
   console.log('=== Gemini Environment Check ===');
   console.log('GOOGLE_API_KEY exists:', !!process.env.GOOGLE_API_KEY);
@@ -10,87 +11,65 @@ const checkGeminiEnvironment = () => {
   console.log('NODE_ENV:', process.env.NODE_ENV);
   console.log('===============================');
 };
-
-// Call this when your service starts
 checkGeminiEnvironment();
 
-// Initialize Gemini model
+// === Gemini Model Initialization ===
 const geminiModel = new ChatGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_API_KEY,
+  apiKey: process.env.GOOGLE_API_KEY!,
   model: "gemini-2.0-flash",
   temperature: 0.7,
   maxOutputTokens: 1000,
   safetySettings: [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    },
-  ],
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+  ]
 });
 
-// Interface for conversation history
 interface ConversationEntry {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
 
-// In-memory storage for conversations (use Redis/Database in production)
 const conversationStore = new Map<string, ConversationEntry[]>();
+const ticketIdStore = new Map<string, number>();
 
-// Generate unique session ID (you can pass this from frontend or generate here)
 const generateSessionId = (): string => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 };
 
-// Get conversation history for a session
 const getConversationHistory = (sessionId: string): ConversationEntry[] => {
   return conversationStore.get(sessionId) || [];
 };
 
-// Add message to conversation history
 const addToConversationHistory = (sessionId: string, role: 'user' | 'assistant', content: string): void => {
   const history = getConversationHistory(sessionId);
-  history.push({
-    role,
-    content,
-    timestamp: new Date()
-  });
-  
-  // Keep only last 20 messages to manage token limits (adjust as needed)
-  if (history.length > 20) {
-    history.splice(0, history.length - 20);
-  }
-  
+  history.push({ role, content, timestamp: new Date() });
+  if (history.length > 20) history.splice(0, history.length - 20);
   conversationStore.set(sessionId, history);
 };
 
-// Clear conversation history for a session
 const clearConversationHistory = (sessionId: string): void => {
   conversationStore.delete(sessionId);
 };
 
-// Convert conversation history to LangChain messages format
 const formatMessagesForGemini = (history: ConversationEntry[]): BaseMessage[] => {
-  return history.map(entry => {
-    if (entry.role === 'user') {
-      return new HumanMessage(entry.content);
-    } else {
-      return new AIMessage(entry.content);
-    }
-  });
+  return history.map(entry => entry.role === 'user' ? new HumanMessage(entry.content) : new AIMessage(entry.content));
+};
+
+const extractTicketId = (message: string): number | null => {
+  const match = message.match(/(?:ticket\s*(?:id)?\s*#?\s*)(\d+)/i);
+  return match ? parseInt(match[1]) : null;
+};
+
+const getStoredTicketId = (sessionId: string): number | null => {
+  return ticketIdStore.get(sessionId) || null;
+};
+
+const setStoredTicketId = (sessionId: string, ticketId: number): void => {
+  ticketIdStore.set(sessionId, ticketId);
 };
 
 const logError = (context: string, error: any) => {
@@ -102,115 +81,109 @@ const logError = (context: string, error: any) => {
   console.error('=================');
 };
 
-// Enhanced function with conversation history
+
 export const generateGeminiResponse = async (
-  message: string, 
+  message: string,
   sessionId?: string
 ): Promise<{ response: string; sessionId: string }> => {
   try {
-    console.log('Starting Gemini response generation...');
-    console.log('Input message:', message);
-    console.log('Session ID:', sessionId);
-    
-    if (!message || message.trim().length === 0) {
-      throw new Error("Message cannot be empty");
-    }
+    console.log(">> Inside generateGeminiResponse(), langchainServices with message:", message);
 
-    if (message.length > 8000) {
-      throw new Error("Message too long");
-    }
+    if (!message) throw new Error("Message is required");
 
-    // Use provided sessionId or generate new one
     const currentSessionId = sessionId || generateSessionId();
-    
-    // Get conversation history
-    const conversationHistory = getConversationHistory(currentSessionId);
-    console.log(`Retrieved ${conversationHistory.length} previous messages`);
-    
-    // Add current user message to history
-    addToConversationHistory(currentSessionId, 'user', message);
-    
-    // Prepare messages for Gemini (including history + current message)
-    const allMessages = formatMessagesForGemini([
-      ...conversationHistory,
-      { role: 'user', content: message, timestamp: new Date() }
-    ]);
+    const history = getConversationHistory(currentSessionId);
 
-    console.log('Calling Gemini API with conversation context...');
-    console.log(`Total messages in context: ${allMessages.length}`);
-    
-    // Send conversation history to Gemini
+    const ticketIdInMsg = extractTicketId(message);
+console.log("Extracted ticket ID from message:", ticketIdInMsg);
+if (ticketIdInMsg) setStoredTicketId(currentSessionId, ticketIdInMsg);
+
+const ticketId = getStoredTicketId(currentSessionId);
+console.log("Stored ticket ID for session:", ticketId);
+
+    let ticketContext = '';
+
+    if (ticketId) {
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        include: { user: { select: { name: true, email: true } } }
+      });
+
+      console.log("Fetched ticket for Gemini context:", ticket);
+
+      if (ticket) {
+        ticketContext = `
+You are a helpful support assistant. Here's the ticket context:
+---
+Ticket ID: ${ticket.id}
+Title: ${ticket.title}
+Description: ${ticket.description || "No description provided"}
+Priority: ${ticket.priority}
+Status: ${ticket.status}
+Submitted by: ${ticket.user.name} (${ticket.user.email})
+---
+Answer the user's question below.
+        `.trim();
+      } else {
+        ticketContext = `User is asking about ticket ID ${ticketId}, but it was not found in the system.`;
+        console.warn("No ticket found for ID:", ticketId);
+      }
+    }
+
+    const allMessages = [
+      ...(ticketContext ? [new HumanMessage(ticketContext)] : []),
+      ...formatMessagesForGemini(history),
+      new HumanMessage(message)
+    ];
+
+    console.log("Sending to Gemini:");
+    allMessages.forEach((m, i) => console.log(`${i + 1}. [${m._getType()}]:`, m.content));
+
     const response = await geminiModel.invoke(allMessages);
-    console.log('Gemini response received');
-    console.log('Response length:', response.content.length);
-    
     const responseContent = response.content as string;
-    
-    // Add AI response to history
+
+    // Store full turn in memory
+    addToConversationHistory(currentSessionId, 'user', message);
     addToConversationHistory(currentSessionId, 'assistant', responseContent);
-    
+
+    // Escalate if triggered
+    if (responseContent.toLowerCase().includes("escalating this issue to a human") && ticketId) {
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: { status: 'escalated' }
+      });
+    }
+
     return {
       response: responseContent,
       sessionId: currentSessionId
     };
+
   } catch (error) {
     logError("Gemini Error", error);
-    
-    // Handle Gemini-specific errors
-    if (error instanceof Error) {
-      if (error.message.includes('quota') || error.message.includes('QUOTA_EXCEEDED')) {
-        throw new Error("Gemini quota exceeded. Please try again later.");
-      }
-      if (error.message.includes('API_KEY') || error.message.includes('authentication')) {
-        throw new Error("Invalid Gemini API key configuration");
-      }
-      if (error.message.includes('SAFETY')) {
-        throw new Error("Content blocked by Gemini safety filters");
-      }
-      if (error.message.includes('timeout')) {
-        throw new Error("Request timeout - Gemini took too long to respond");
-      }
-      if (error.message.includes('BLOCKED')) {
-        throw new Error("Content was blocked by Gemini's safety settings");
-      }
-    }
-    
-    throw new Error(`Gemini AI service failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(error instanceof Error ? error.message : "Gemini AI service failed");
   }
 };
 
-// Function to get conversation history (for debugging or display)
+
 export const getSessionHistory = (sessionId: string): ConversationEntry[] => {
   return getConversationHistory(sessionId);
 };
 
-// Function to clear a conversation
 export const clearSession = (sessionId: string): void => {
   clearConversationHistory(sessionId);
 };
 
-// Function to get all active sessions (for debugging)
 export const getActiveSessions = (): string[] => {
   return Array.from(conversationStore.keys());
 };
 
-// Test function with conversation context
 export const testGeminiConnection = async (): Promise<{ success: boolean; message: string }> => {
   try {
-    console.log('Testing Gemini connection...');
-    
     const testResponse = await geminiModel.invoke("Say 'Hello World' and confirm you are Google Gemini");
-    
-    return {
-      success: true,
-      message: `Connection successful. Response: ${testResponse.content}`
-    };
+    return { success: true, message: `Connection successful. Response: ${testResponse.content}` };
   } catch (error) {
     logError("Gemini Connection Test Error", error);
-    
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Unknown connection error'
-    };
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown connection error' };
   }
 };

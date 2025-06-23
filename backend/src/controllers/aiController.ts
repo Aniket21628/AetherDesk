@@ -9,41 +9,37 @@ interface ChatRequest extends Request {
   };
 }
 
-// Main chat endpoint
-export const handleChatMessage = async (req: ChatRequest, res: Response): Promise<void> => {
+export const handleChatMessage = async (req: ChatRequest, res: Response): Promise<Response | void> => {
   try {
     const { message, sessionId } = req.body;
+    console.log(">> Inside handleChatMessage, aiController. Message:", message, "Session:", sessionId);
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      res.status(400).json({ 
-        error: 'Message is required and must be a non-empty string' 
-      });
-      return;
+      return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
     }
 
-    console.log('Processing chat message:', message);
-    console.log('Session ID:', sessionId || 'new session');
+    console.log('Processing message:', message);
+    console.log('Session:', sessionId || 'new');
 
-    // Generate response with conversation history
+    // Now Gemini will extract ticket ID internally
     const result = await generateGeminiResponse(message, sessionId);
 
-    res.json({
+    res.status(200).json({
       response: result.response,
       sessionId: result.sessionId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
   } catch (error) {
-    console.error('Chat error:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('AI error:', errorMessage);
     res.status(500).json({
       error: errorMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 };
+
 
 // Optional: Endpoint to clear conversation history
 export const clearChatHistory = async (req: Request, res: Response): Promise<void> => {
