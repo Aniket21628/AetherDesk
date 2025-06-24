@@ -20,8 +20,8 @@ import {
   IconButton,
   Fade,
   CircularProgress,
-  useTheme,
-  useMediaQuery
+  // useTheme,
+  // useMediaQuery
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -116,7 +116,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const muiTheme = useTheme();
+  // const muiTheme = useTheme();
   // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

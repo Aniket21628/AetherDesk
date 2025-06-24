@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../context/AuthContext';
 import {
   Box,
   Card,
@@ -21,7 +20,6 @@ import {
   Fade,
   CircularProgress,
   useTheme,
-  useMediaQuery,
   MenuItem,
   FormControl,
   InputLabel,
@@ -147,7 +145,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const muiTheme = useTheme();
+  // const muiTheme = useTheme();
   // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

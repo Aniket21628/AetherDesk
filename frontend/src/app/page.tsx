@@ -19,7 +19,7 @@ import {
   Fade,
   CircularProgress,
   useTheme,
-  useMediaQuery,
+  // useMediaQuery,
   MenuItem,
   FormControl,
   InputLabel,
@@ -154,7 +154,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const muiTheme = useTheme();
+  // const muiTheme = useTheme();
   // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
