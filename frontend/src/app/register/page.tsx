@@ -23,7 +23,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -153,7 +154,7 @@ export default function RegisterPage() {
     if (error) setError('');
   };
 
-  const handleRoleChange = (e: any) => {
+  const handleRoleChange = (e: SelectChangeEvent) => {
     setForm({ ...form, role: e.target.value });
     if (error) setError('');
   };
@@ -171,7 +172,7 @@ export default function RegisterPage() {
         role: form.role
       });
       
-      const res = await fetch('https://aetherdesk.onrender.com/auth/register', {
+      const res = await fetch(`${process.env.BACKEND_URL}auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

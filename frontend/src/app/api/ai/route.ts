@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     console.log('Sending to backend:', body);
     
-    const response = await fetch('https://aetherdesk.onrender.com/ai/chat', {
+    const response = await fetch(`${process.env.BACKEND_URL}ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

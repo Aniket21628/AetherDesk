@@ -1,7 +1,17 @@
-// src/lib/api.ts
-const BASE_URL = 'https://aetherdesk.onrender.com'; // adjust if needed
+const BASE_URL = 'https://aetherdesk.onrender.com'; 
 
-export const registerUser = async (data: any) => {
+type RegisterData = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+type LoginData = {
+  email: string;
+  password: string;
+};
+
+export const registerUser = async (data: RegisterData) => {
   const res = await fetch(`${BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -10,7 +20,7 @@ export const registerUser = async (data: any) => {
   return res.json();
 };
 
-export const loginUser = async (data: any) => {
+export const loginUser = async (data: LoginData) => {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -20,7 +30,7 @@ export const loginUser = async (data: any) => {
 };
 
 export async function fetchTickets(token: string) {
-  const res = await fetch('https://aetherdesk.onrender.com/tickets', {
+  const res = await fetch(`${BASE_URL}/tickets`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return await res.json();

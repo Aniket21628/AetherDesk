@@ -135,7 +135,7 @@ export default function LoginPage() {
         password: form.password ? '***' : 'empty' 
       });
       
-      const res = await fetch('https://aetherdesk.onrender.com/auth/login', {
+      const res = await fetch(`${process.env.BACKEND_URL}auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

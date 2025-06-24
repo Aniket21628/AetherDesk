@@ -2,6 +2,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { SelectChangeEvent } from '@mui/material';
 import Chatbot from '../components/Chatbot';
 import {
   Box,
@@ -162,7 +163,7 @@ export default function Home() {
     if (error) setError('');
   };
 
-  const handlePriorityChange = (e: any) => {
+  const handlePriorityChange = (e: SelectChangeEvent) => {
     setForm({ ...form, priority: e.target.value });
     if (error) setError('');
   };
@@ -199,7 +200,7 @@ export default function Home() {
         createdBy: user.id,
       };
       
-      const res = await fetch('https://aetherdesk.onrender.com/tickets', {
+      const res = await fetch(`${process.env.BACKEND_URL}tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
