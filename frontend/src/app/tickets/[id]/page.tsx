@@ -155,7 +155,7 @@ export default function TicketDetailPage() {
     const fetchTicket = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.BACKEND_URL}tickets/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}tickets/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -184,7 +184,7 @@ export default function TicketDetailPage() {
     
     setUpdating(true);
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}tickets/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}tickets/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

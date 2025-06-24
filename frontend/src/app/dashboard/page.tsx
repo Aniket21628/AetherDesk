@@ -149,7 +149,7 @@ export default function DashboardPage() {
       const token = localStorage.getItem('token');
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.BACKEND_URL}tickets`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}tickets`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -177,7 +177,7 @@ export default function DashboardPage() {
     const token = localStorage.getItem('token');
     setSummaryLoading(true);
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}ai/summary`
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}ai/summary`
         , {
           headers: {
             'Content-Type': 'application/json',
