@@ -199,7 +199,7 @@ export default function Home() {
         createdBy: user.id,
       };
       
-      const res = await fetch('http://localhost:5000/tickets', {
+      const res = await fetch('https://aetherdesk.onrender.com/tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

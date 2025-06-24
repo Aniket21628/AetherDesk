@@ -149,7 +149,7 @@ export default function DashboardPage() {
       const token = localStorage.getItem('token');
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/tickets', {
+        const res = await fetch('https://aetherdesk.onrender.com/tickets', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -177,7 +177,7 @@ export default function DashboardPage() {
     const token = localStorage.getItem('token');
     setSummaryLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/ai/summary'
+      const res = await fetch('https://aetherdesk.onrender.com/ai/summary'
         , {
           headers: {
             'Content-Type': 'application/json',

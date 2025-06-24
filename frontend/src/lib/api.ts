@@ -1,5 +1,5 @@
 // src/lib/api.ts
-const BASE_URL = 'http://localhost:5000'; // adjust if needed
+const BASE_URL = 'https://aetherdesk.onrender.com'; // adjust if needed
 
 export const registerUser = async (data: any) => {
   const res = await fetch(`${BASE_URL}/auth/register`, {
@@ -20,7 +20,7 @@ export const loginUser = async (data: any) => {
 };
 
 export async function fetchTickets(token: string) {
-  const res = await fetch('http://localhost:5000/tickets', {
+  const res = await fetch('https://aetherdesk.onrender.com/tickets', {
     headers: { Authorization: `Bearer ${token}` },
   });
   return await res.json();
