@@ -1,5 +1,5 @@
 'use client';
-
+import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Chatbot from '../components/Chatbot';
@@ -155,7 +155,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const muiTheme = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -250,9 +250,9 @@ export default function Home() {
     }
   ];
 
-  const getCurrentPriorityOption = () => {
-    return priorityOptions.find(option => option.value === form.priority) || priorityOptions[0];
-  };
+  // const getCurrentPriorityOption = () => {
+  //   return priorityOptions.find(option => option.value === form.priority) || priorityOptions[0];
+  // };
 
   return (
     <ThemeProvider theme={theme}>

@@ -31,10 +31,10 @@ import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon,
-  Assignment as TicketIcon,
+  // Cancel as CancelIcon,
+  // Assignment as TicketIcon,
   Schedule as ScheduleIcon,
-  Person as PersonIcon,
+  // Person as PersonIcon,
   CalendarToday as CalendarIcon,
   PriorityHigh as HighPriorityIcon,
   Remove as MediumPriorityIcon,
@@ -170,6 +170,7 @@ export default function TicketDetailPage() {
         }
       } catch (err) {
         setError('Something went wrong while fetching the ticket');
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -201,6 +202,7 @@ export default function TicketDetailPage() {
       }
     } catch (err) {
       setError('Something went wrong while updating the ticket');
+      console.error(err);
     } finally {
       setUpdating(false);
     }

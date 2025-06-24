@@ -28,7 +28,7 @@ import {
 } from '@mui/material';
 import {
   Logout as LogoutIcon,
-  Add as AddIcon,
+  // Add as AddIcon,
   Assignment as TicketIcon,
   TrendingUp as TrendingUpIcon,
   Schedule as ScheduleIcon,
@@ -159,7 +159,8 @@ export default function DashboardPage() {
           setError(data.error || 'Failed to fetch tickets');
         }
       } catch (err) {
-        setError('Something went wrong');
+        setError('An error occurred while fetching tickets.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -192,6 +193,7 @@ export default function DashboardPage() {
       setSummaryText(data.summary || 'No summary available.');
     } catch (err) {
       setSummaryText('Failed to load AI summary.');
+      console.error('Error fetching AI summary:', err);
     } finally {
       setSummaryLoading(false);
     }

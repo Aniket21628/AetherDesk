@@ -92,6 +92,16 @@ export default function Chatbot() {
         body: JSON.stringify({ sessionId }),
       });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        const errorMessage = errorData.error || errorData.message || `Error: ${res.status} ${res.statusText}`;
+        console.error('Clear conversation error:', errorMessage);
+        setMessages((prev) => [...prev, { 
+          from: 'ai', 
+          text: `Error clearing conversation: ${errorMessage}` 
+        }]);
+        return;
+      }
       setMessages([]);
       setSessionId(null);
     } catch (error) {
@@ -221,7 +231,7 @@ export default function Chatbot() {
                 <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-ping"></div>
               </div>
               <div className="space-y-2">
-                <h4 className="text-white font-medium">Hello! I'm your AI Assistant</h4>
+                <h4 className="text-white font-medium">Hello! Its your AI Assistant</h4>
                 <p className="text-gray-400 text-sm">Ask me anything about your support tickets or platform features!</p>
               </div>
             </div>

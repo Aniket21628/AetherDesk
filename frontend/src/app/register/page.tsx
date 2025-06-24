@@ -15,7 +15,7 @@ import {
   Avatar,
   Stack,
   Divider,
-  Link,
+  // Link,
   InputAdornment,
   IconButton,
   Fade,
@@ -136,7 +136,7 @@ const theme = createTheme({
 });
 
 export default function RegisterPage() {
-  const { setToken } = useAuth();
+  // const { setToken } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
     name: '',
@@ -148,7 +148,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const muiTheme = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

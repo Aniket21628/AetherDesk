@@ -117,7 +117,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const muiTheme = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  // const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -365,7 +365,7 @@ export default function LoginPage() {
 
               <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'rgba(99, 102, 241, 0.02)' }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Don't have an account?
+                  No account?
                 </Typography>
                 <Button
                   variant="outlined"
