@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     console.log('Sending to backend:', body);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}ai/chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

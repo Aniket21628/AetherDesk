@@ -200,7 +200,7 @@ export default function Home() {
         createdBy: user.id,
       };
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}tickets`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
