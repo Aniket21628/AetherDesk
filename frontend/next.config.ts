@@ -1,7 +1,8 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
-const nextConfig = {
-      distDir: 'build',
-  }
+const nextConfig: NextConfig = {
+  // distDir: 'build', // ❌ Remove this line
+};
 
 export default nextConfig;
